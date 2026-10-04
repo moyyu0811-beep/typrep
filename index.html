@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypePrep — TOEFL &amp; IELTS Typing Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --border: #e0e0e0;
+  --text: #111827;
+  --muted: #9ca3af;
+  --pending: #c9cdd4;
+  --accent: #6366f1;
+  --accent-d: #4f46e5;
+  --accent-lt: #e0e7ff;
+  --error: #ef4444;
+  --success: #22c55e;
+  --warn: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+}
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+[hidden] { display: none !important; }
+
+/* ── START SCREEN ──────────────────────────────────────── */
+#screen-start {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.start-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2.5rem 2.5rem 2rem;
+  max-width: 680px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+.app-logo { text-align: center; margin-bottom: 2rem; }
+.logo-keys { display: flex; gap: 6px; justify-content: center; margin-bottom: 0.6rem; }
+.logo-key {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem;
+  box-shadow: 0 3px 0 var(--accent-d);
+}
+.app-logo h1 { font-size: 2rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+.app-logo p  { color: var(--muted); font-size: 0.9rem; margin-top: 0.2rem; }
+
+.section-lbl {
+  font-size: 0.72rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.75rem;
+}
+.dict-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+@media (max-width: 540px) { .dict-grid { grid-template-columns: 1fr; } }
+.dict-card {
+  border: 2px solid var(--border); border-radius: var(--radius);
+  padding: 1.1rem; cursor: pointer; transition: all 0.18s; position: relative;
+}
+.dict-card:hover  { border-color: var(--accent); background: var(--accent-lt); }
+.dict-card.active { border-color: var(--accent); background: var(--accent-lt);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.dict-card.active::after {
+  content: '✓'; position: absolute; top: 10px; right: 12px;
+  color: var(--accent); font-weight: 700; font-size: 0.95rem;
+}
+.dict-icon  { font-size: 1.4rem; margin-bottom: 0.35rem; }
+.dict-name  { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.dict-desc  { font-size: 0.77rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.5rem; }
+.dict-badge {
+  font-size: 0.7rem; font-weight: 600; color: var(--accent);
+  background: var(--accent-lt); padding: 2px 8px; border-radius: 20px; display: inline-block;
+}
+
+.wpm-section { margin-bottom: 1.5rem; }
+.wpm-section label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.wpm-section label strong { color: var(--accent); }
+input[type=range] {
+  width: 100%; appearance: none; height: 6px;
+  border-radius: 3px; background: var(--border); cursor: pointer; margin-bottom: 0.4rem;
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 2px 6px rgba(99,102,241,0.4);
+}
+.wpm-hints { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); }
+
+#start-btn {
+  width: 100%; padding: 0.85rem; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600;
+  cursor: pointer; font-family: inherit; transition: all 0.18s;
+}
+#start-btn:hover:not(:disabled) { background: var(--accent-d); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,0.4); }
+#start-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+/* ── PRACTICE SCREEN ───────────────────────────────────── */
+#screen-practice { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Header */
+.prac-header {
+  background: #fff; border-bottom: 1px solid var(--border);
+  padding: 0.65rem 1.5rem; display: flex; align-items: center;
+  gap: 1rem; position: sticky; top: 0; z-index: 10;
+}
+.btn-back {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0.35rem 0.75rem; background: none; cursor: pointer;
+  font-size: 0.82rem; font-family: inherit; color: var(--text); transition: all 0.15s;
+}
+.btn-back:hover { border-color: var(--accent); color: var(--accent); }
+.hdr-badge {
+  font-size: 0.82rem; font-weight: 600; padding: 0.25rem 0.8rem;
+  background: var(--accent-lt); color: var(--accent); border-radius: 20px;
+}
+.hdr-stats { margin-left: auto; display: flex; gap: 1.5rem; }
+.stat { text-align: center; }
+.stat-lbl { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.stat-val { display: block; font-size: 1.1rem; font-weight: 700; line-height: 1.1; }
+.stat-val.green { color: var(--success); }
+.stat-val.amber { color: var(--warn); }
+
+/* Letter Strip */
+.letter-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 0.6rem 1.5rem; }
+.letter-bar-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 0.35rem; }
+.letter-strip { display: flex; flex-wrap: wrap; gap: 4px; }
+.lchip {
+  width: 26px; height: 26px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.75rem; transition: all 0.25s;
+}
+.lchip.unlocked { background: var(--accent); color: #fff; box-shadow: 0 2px 0 var(--accent-d); }
+.lchip.nxt      { background: var(--accent-lt); color: var(--accent); border: 2px dashed var(--accent); }
+.lchip.locked   { background: var(--bg); color: #d1d5db; border: 1px solid var(--border); }
+.lchip.newest   { animation: chipPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes chipPop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* WPM Bar */
+.wpm-bar-wrap { background: #fff; border-bottom: 1px solid var(--border); padding: 0.55rem 1.5rem; }
+.wpm-track { height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 0.3rem; }
+.wpm-fill  { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.35s ease, background 0.35s; }
+.wpm-lbl   { font-size: 0.78rem; color: var(--muted); }
+
+/* Practice Main */
+.prac-main {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 1.5rem 1.5rem 1rem; gap: 1.25rem;
+}
+
+/* Text Lane */
+.lane-wrap {
+  width: 100%; max-width: 880px; background: #fff;
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 1.75rem 2rem; cursor: default;
+  min-height: 148px; position: relative;
+  outline: none;
+}
+.lane-hint {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--muted); font-size: 0.9rem;
+  pointer-events: none; transition: opacity 0.2s;
+}
+.text-line {
+  display: flex; flex-wrap: wrap; gap: 0 0.55em;
+  margin-bottom: 0.6em; min-height: 2.4rem;
+}
+.text-line.prev { opacity: 0.5; }
+.word-el {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 1.4rem; white-space: nowrap; cursor: pointer;
+  border-bottom: 2px solid transparent; transition: border-color 0.12s;
+  position: relative;
+}
+.word-el:hover { border-bottom-color: var(--accent); }
+.ch {
+  display: inline; color: var(--pending);
+  transition: color 0.08s;
+}
+.ch.ok  { color: var(--text); }
+.ch.err { color: var(--error); }
+.caret {
+  display: inline-block; width: 2px; height: 1.25em;
+  background: var(--accent); vertical-align: text-bottom;
+  animation: blink 1s step-start infinite; margin-right: -1px;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Keyboard */
+.kb-wrap { width: 100%; max-width: 640px; }
+.kb-row  { display: flex; justify-content: center; gap: 4px; margin-bottom: 4px; }
+.key {
+  width: 50px; height: 50px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 0.85rem; user-select: none;
+  transition: all 0.08s;
+}
+.key.on  {
+  background: #fff; border: 2px solid var(--accent); color: var(--accent);
+  box-shadow: 0 3px 0 var(--accent-d);
+}
+.key.off {
+  background: #f3f4f6; border: 2px solid #e5e7eb;
+  color: #d1d5db; box-shadow: 0 2px 0 #d1d5db;
+}
+.key.flash-ok  { background: var(--success)!important; color:#fff!important; border-color:var(--success)!important; transform:translateY(2px); box-shadow:0 1px 0 #16a34a!important; }
+.key.flash-err { background: var(--error)!important;   color:#fff!important; border-color:var(--error)!important;   transform:translateY(2px); box-shadow:0 1px 0 #dc2626!important; }
+
+@media (max-width: 600px) {
+  .key { width: 30px; height: 36px; font-size: 0.7rem; }
+  .word-el { font-size: 1.1rem; }
+  .prac-main { padding: 1rem; }
+}
+
+/* Definition Popup */
+.def-popup {
+  position: fixed; z-index: 200; width: 310px; max-width: calc(100vw - 20px);
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); overflow: hidden;
+  animation: popIn 0.15s ease;
+}
+@keyframes popIn { from { opacity:0; transform: translateY(-6px) scale(0.97); } to { opacity:1; } }
+.def-head {
+  padding: 0.9rem 1rem 0.7rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap;
+}
+.def-word { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+.def-pron { font-size: 0.78rem; color: var(--muted); }
+.def-pos  { font-size: 0.72rem; font-style: italic; color: var(--muted); background: var(--bg); padding: 1px 6px; border-radius: 4px; }
+.def-close { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; border-radius: 4px; line-height: 1; padding: 2px 4px; }
+.def-close:hover { background: var(--bg); color: var(--text); }
+.def-body { padding: 0.7rem 1rem; }
+.def-defn { font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.4rem; }
+.def-ex   { font-size: 0.8rem; color: var(--muted); font-style: italic; line-height: 1.4; }
+
+/* Unlock Overlay */
+.unlock-ov {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.55); display: flex;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.unlock-ov.show { opacity: 1; pointer-events: auto; }
+.unlock-card {
+  background: #fff; border-radius: 20px; padding: 2.5rem 3rem;
+  text-align: center; box-shadow: var(--shadow-lg);
+  animation: unlockBounce 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes unlockBounce { from { transform: scale(0.65); } to { transform: scale(1); } }
+.ul-emoji  { font-size: 2.8rem; margin-bottom: 0.4rem; }
+.ul-title  { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.ul-letter { font-size: 5rem; font-weight: 800; color: var(--accent); font-family: 'JetBrains Mono',monospace; line-height: 1; margin-bottom: 0.4rem; }
+.ul-sub    { font-size: 0.88rem; color: var(--muted); }
+.ul-next   { color: var(--accent); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start">
+  <div class="start-card">
+    <div class="app-logo">
+      <div class="logo-keys">
+        <div class="logo-key">T</div>
+        <div class="logo-key">Y</div>
+        <div class="logo-key">P</div>
+        <div class="logo-key">E</div>
+      </div>
+      <h1>TypePrep</h1>
+      <p>Adaptive typing practice for TOEFL &amp; IELTS · inspired by keybr</p>
+    </div>
+
+    <div class="section-lbl">Choose your word list</div>
+    <div class="dict-grid">
+      <div class="dict-card" data-dict="toefl">
+        <div class="dict-icon">📚</div>
+        <div class="dict-name">TOEFL</div>
+        <div class="dict-desc">High-frequency vocabulary for TOEFL iBT exam preparation</div>
+        <span class="dict-badge">500+ words</span>
+      </div>
+      <div class="dict-card" data-dict="ielts">
+        <div class="dict-icon">🎓</div>
+        <div class="dict-name">IELTS Academic</div>
+        <div class="dict-desc">Academic Word List (AWL) used in IELTS Academic band scoring</div>
+        <span class="dict-badge">AWL 570 families</span>
+      </div>
+      <div class="dict-card" data-dict="oxford">
+        <div class="dict-icon">📖</div>
+        <div class="dict-name">Oxford 3000</div>
+        <div class="dict-desc">Core English vocabulary essential for B2–C1 proficiency</div>
+        <span class="dict-badge">3000 words</span>
+      </div>
+    </div>
+
+    <div class="wpm-section">
+      <label>Target typing speed: <strong id="wpm-val">40</strong> WPM</label>
+      <input type="range" id="wpm-slider" min="25" max="120" value="40" step="5">
+      <div class="wpm-hints"><span>25 WPM · beginner</span><span>120 WPM · expert</span></div>
+    </div>
+
+    <button id="start-btn" disabled>↑ Select a word list to begin</button>
+  </div>
+</div>
+
+<!-- ═══════════ PRACTICE SCREEN ═══════════ -->
+<div id="screen-practice" hidden>
+
+  <header class="prac-header">
+    <button class="btn-back" id="btn-back">← Back</button>
+    <div class="hdr-badge" id="hdr-badge">TOEFL</div>
+    <div class="hdr-stats">
+      <div class="stat"><span class="stat-lbl">WPM</span><span class="stat-val" id="s-wpm">—</span></div>
+      <div class="stat"><span class="stat-lbl">Target</span><span class="stat-val" id="s-target">40</span></div>
+      <div class="stat"><span class="stat-lbl">Accuracy</span><span class="stat-val" id="s-acc">—</span></div>
+      <div class="stat"><span class="stat-lbl">Words</span><span class="stat-val" id="s-words">0</span></div>
+    </div>
+  </header>
+
+  <div class="letter-bar">
+    <div class="letter-bar-lbl">Letter progression — unlock the next letter by reaching your WPM goal</div>
+    <div class="letter-strip" id="letter-strip"></div>
+  </div>
+
+  <div class="wpm-bar-wrap">
+    <div class="wpm-track"><div class="wpm-fill" id="wpm-fill" style="width:0%"></div></div>
+    <div class="wpm-lbl" id="wpm-lbl">Start typing to begin…</div>
+  </div>
+
+  <div class="prac-main">
+    <div class="lane-wrap" id="lane-wrap" tabindex="0">
+      <div class="lane-hint" id="lane-hint">Click here or start typing…</div>
+      <div id="text-lane"></div>
+    </div>
+    <div class="kb-wrap">
+      <div id="keyboard"></div>
+    </div>
+  </div>
+
+</div><!-- /screen-practice -->
+
+<!-- Definition Popup -->
+<div class="def-popup" id="def-popup" hidden>
+  <div class="def-head">
+    <span class="def-word" id="def-word"></span>
+    <span class="def-pron" id="def-pron"></span>
+    <span class="def-pos"  id="def-pos"></span>
+    <button class="def-close" id="def-close" title="Close">✕</button>
+  </div>
+  <div class="def-body">
+    <div class="def-defn" id="def-defn">Loading…</div>
+    <div class="def-ex"   id="def-ex"></div>
+  </div>
+</div>
+
+<!-- Unlock Overlay -->
+<div class="unlock-ov" id="unlock-ov">
+  <div class="unlock-card">
+    <div class="ul-emoji">🔓</div>
+    <div class="ul-title">New Letter Unlocked!</div>
+    <div class="ul-letter" id="ul-letter">T</div>
+    <div class="ul-sub">Next up: <span class="ul-next" id="ul-next">O</span></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════ */
+
+const LETTER_SEQ = ['E','N','I','A','R','L','T','O','S','U','D','Y','C','G','H','P','M','K','B','W','F','Z','V','X','Q','J'];
+const START_CNT  = 6; // E N I A R L
+const WPM_WINDOW = 10; // rolling average over last N words
+const WPM_MIN_SAMPLE = 5; // need at least this many words before unlocking
+
+const KB_ROWS = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['Z','X','C','V','B','N','M'],
+];
+
+/* ── Word Lists ──────────────────────────────────────────
+   One large pool per dictionary. Filtered at runtime
+   by currently unlocked letters.
+   Source attribution:
+     TOEFL: open academic frequency lists (public domain)
+     IELTS: Academic Word List, V.U.Wellington (open)
+     Oxford: Oxford 3000 community-curated subset
+─────────────────────────────────────────────────────── */
+const CORE = [
+  // Stage 1  E N I A R L
+  'air','ail','ale','are','ear','era','ire','lei','lie','nil','ran',
+  'rein','rain','real','rail','nail','lean','lane','lain','lair','line',
+  'earl','earn','near','rile','lire','anil','rani','aria','rale',
+  'linen','liner','learn','alien','aerial','nailer','linear','airline',
+  'liana','reline','renail',
+  // Stage 2  +T
+  'at','it','ten','net','tin','tan','nit','ant','ate','tea',
+  'tine','tile','tail','rate','late','tale','tare','rent','tern',
+  'lint','tint','rant','anti','ante','irate','inert','inter','alert',
+  'alter','later','trail','train','trial','talent','titan','retinal',
+  'rental','entail','terrain','eternal','latrine','literal','attain',
+  'retain','trainee','latte','tarn','nitrite','tiler','literati',
+  // Stage 3  +O
+  'ore','roe','rot','toe','ton','lot','nor','not','oat','too',
+  'role','oral','loan','alto','torn','tone','tore','note','iron',
+  'rote','lore','root','toil','roil','loon','loot','noon',
+  'ornate','ration','notion','nation','lotion','orient','rotate',
+  'elation','relation','notation','oration','rational','oriental',
+  'orientation','tonal','atonal','national','rotation','editorial',
+  'irrational','territorial',
+  // Stage 4  +S
+  'sir','sit','set','sat','sin','son','sole','sort','soul','sour',
+  'star','sail','sale','sent','site','snore','stone','store','stare',
+  'noise','arise','alone','onset','senator','atone','list','last',
+  'lost','salt','silt','rest','nest','test','ties','lies','sire',
+  'station','liaison','isolation','transition','international',
+  'sensational','rationalist','nationalist','relations','transistors',
+  'intestinal','assassinate','satisfies',
+  // Stage 5  +U
+  'sue','rut','urn','rune','sure','tour','lure','sun','run',
+  'unreal','nature','suture','neutral','tourist','ensure','insure',
+  'tenure','nurture','torture','literature','routine','solution',
+  'resolution','stature','outlines','natural','saturate','lustier',
+  'tonsure','institution','notorious','unilateral','nationals',
+  // Stage 6  +D
+  'due','dun','din','den','dust','done','dial','darn','dare',
+  'deal','diet','dear','dose','data','duel','dune','dirt',
+  'detail','united','lasted','studio','student','nodule','island',
+  'standard','detailed','tradition','additional','industrial',
+  'traditional','ordinal','editorial','transitional','institutional',
+  'residential','situational','dimensional','standardised',
+  // Stage 7  +Y
+  'dry','day','say','ray','lay','key','yet','yes','year','yard',
+  'style','study','dusty','lusty','rusty','daily','early','ready',
+  'steady','industry','ordinary','directory','auditory','mandatory',
+  'territory','dictionary','rudimentary','evolutionary',
+  // Stage 8  +C
+  'cat','can','ice','ace','act','arc','cue','cut','cry','core',
+  'care','case','cast','cite','clue','code','coin','come','cost',
+  'once','acid','since','council','crucial','critical','conduct',
+  'create','culture','concept','context','concern','concrete',
+  'construct','conscious','collection','connection','conclusion',
+  'construction','circumstance','consequence','characteristic',
+  // Stage 9  +G
+  'get','got','gal','gas','gain','gate','gift','girl','give',
+  'glad','gold','gone','grade','grand','great','green','group',
+  'guard','guess','guest','guide','generate','gradual','guidance',
+  'general','generation','government','graduation','groundwork',
+  // Stage 10  +H
+  'hit','hot','had','has','her','him','his','how','help','high',
+  'hold','home','hope','hour','hand','hard','hunt','hair','half',
+  'halt','harm','head','hear','heat','hint','host','harsh','house',
+  'human','health','historical','hypothesis','highlight','hierarchical',
+  // Stage 11  +P
+  'pay','put','pie','pot','pop','pin','pit','pool','pour','pull',
+  'push','pace','pale','path','peak','pick','pine','plan','play',
+  'plot','plus','poem','poll','pose','post','pride','print','prior',
+  'proof','proud','pursue','phase','policy','promote','predict',
+  'participate','perceive','paradigm','potential','physical','proportion',
+  // Stage 12  +M
+  'mad','man','map','may','men','met','mid','mom','mud','mood',
+  'mind','miss','make','mark','mate','meal','mean','meet','mine',
+  'mode','more','move','much','must','main','math','mail','major',
+  'media','moral','music','mental','method','margin','mature',
+  'medium','monitor','migrate','maintain','mechanism','management',
+  // Stage 13  +K
+  'ask','oak','ski','skin','skill','kind','knew','know','knack',
+  'knock','stake','smoke','trick','track','black','blank','block',
+  'brick','clock','click','thick','quick','check','stock','stuck',
+  'stack','remarkable','acknowledge',
+  // Stage 14  +B
+  'bad','bag','ban','bar','bat','bay','bed','big','bit','box','buy',
+  'back','ball','band','bank','bare','bark','base','bath','bear',
+  'beat','bell','bend','bird','blue','boat','body','bold','bond',
+  'bone','book','boot','born','boss','both','burn','busy',
+  'bring','broad','build','brand','break','blend','board','bless',
+  'birth','bench','below','benefit','burden','behavior',
+  // Stage 15  +W
+  'was','war','way','web','wed','wet','who','why','win','wit',
+  'walk','wall','want','warm','wash','week','well','went','west',
+  'wide','wild','will','wind','wine','wish','with','word','work',
+  'worn','wrap','wake','wait','wave','wear','were','wire','wise',
+  'wolf','wood','wool','worry','write','wrong','world','worth',
+  'would','whole','white','while','water','watch','waste','wisdom',
+  // Stage 16  +F
+  'few','fit','fix','fly','fog','for','fun','far','fat','fin',
+  'feel','fill','find','fire','firm','fish','five','flag','flat',
+  'flew','flow','food','foot','fore','fork','form','fort','four',
+  'free','from','fuel','full','fund','fuse','face','fact','fail',
+  'fair','fall','fame','faith','false','favor','field','final',
+  'first','fixed','focus','force','found','frame','fresh','front',
+  'function','framework','financial','foundation','fundamental',
+];
+
+const TOEFL_X = [
+  'analysis','analytic','synthesize','hypothesis','evaluate','interpret',
+  'demonstrate','evidence','significant','various','academic','authority',
+  'available','challenge','complex','concept','conclude','constant',
+  'context','controversy','criterion','define','despite','determine',
+  'dimension','distinguish','domain','economy','element','environment',
+  'establish','estimate','exhibit','expand','expert','expose','extend',
+  'factor','feature','federal','framework','identify','impact',
+  'implement','imply','impose','indicate','initial','instance',
+  'integrate','investigate','legal','license','link','locate','logic',
+  'maintain','margin','mature','migrate','motive','network','norm',
+  'nuclear','obtain','oppose','option','output','paradigm',
+  'participate','perceive','phase','philosophy','physical','policy',
+  'potential','precise','predict','promote','proportion','publish',
+  'pursue','range','react','refine','region','regulate','reinforce',
+  'remove','require','research','resolve','retain','reveal','role',
+  'scheme','scope','sector','series','specific','status','substitute',
+  'sufficient','survey','sustain','symbol','target','task','technical',
+  'theory','transfer','trend','uniform','utilize','valid','variable',
+  'vital','volume','welfare',
+];
+
+const IELTS_X = [
+  'analyse','analytic','annotate','approach','assume','attitude',
+  'benefit','chapter','colleague','community','complex','concept',
+  'conclude','constant','context','contribute','create','criterion',
+  'define','demonstrate','despite','determine','dimension','distinguish',
+  'domain','economy','element','environment','establish','estimate',
+  'evaluate','evolve','exclude','exhibit','expand','expert','expose',
+  'extend','factor','feature','framework','function','global','identify',
+  'impact','implement','imply','impose','initial','instance','integrate',
+  'interpret','investigate','legal','link','locate','logic','maintain',
+  'margin','mature','method','migrate','monitor','mutual','network',
+  'norm','nuclear','obtain','oppose','option','output','paradigm',
+  'participate','perceive','phase','philosophy','physical','policy',
+  'potential','precise','predict','principle','process','promote',
+  'proportion','provide','pursue','range','react','refine','region',
+  'regulate','reinforce','remove','require','research','resolve',
+  'respond','result','retain','reveal','role','scheme','scope','sector',
+  'series','significant','source','specific','status','structure',
+  'substitute','sufficient','survey','sustain','symbol','target','task',
+  'technical','theory','transfer','trend','uniform','unique','utilize',
+  'valid','variable','various','vital','volume','welfare',
+];
+
+const OXFORD_X = [
+  'ability','action','active','actual','address','adult','affect',
+  'agree','almost','always','amount','answer','appear','apply',
+  'artist','aspect','assist','attack','attend','basic','become',
+  'before','below','better','between','beyond','bottom','bright',
+  'budget','capital','career','carry','catch','cause','center',
+  'chance','change','charge','check','choice','chosen','church',
+  'circle','claim','class','clean','close','coach','color','commit',
+  'common','concern','control','corner','count','cover','crime',
+  'cross','crowd','damage','dance','death','decide','degree','delay',
+  'depend','depth','develop','direct','discuss','doubt','drink',
+  'drive','effect','effort','eight','empty','enter','entry','equal',
+  'event','every','exact','exist','expect','extra','fail','family',
+  'famous','final','first','floor','focus','force','forget','fresh',
+  'fruit','fully','given','going','grade','group','guard','guess',
+  'guest','guide','happy','heart','heavy','image','inside','issue',
+  'judge','large','leave','level','light','limit','local','lower',
+  'model','money','month','moral','offer','often','paint','paper',
+  'party','peace','place','plain','plant','point','power','press',
+  'price','pride','print','prior','proof','proud','quote','raise',
+  'rapid','ratio','reach','ready','refer','reply','right','river',
+  'rough','round','route','royal','rural','scale','scene','share',
+  'sharp','shift','short','sight','since','small','smart','smell',
+  'smile','space','speak','speed','spend','sport','stage','start',
+  'state','still','stock','story','sugar','super','table','teach',
+  'thick','thing','think','throw','tight','title','today','topic',
+  'touch','tough','track','trade','truth','twice','under','union',
+  'until','upper','urban','usage','usual','value','visit','voice',
+  'voter','waste','water','woman','youth',
+];
+
+const DICT_WORDS = {
+  toefl:  [...new Set([...CORE, ...TOEFL_X])],
+  ielts:  [...new Set([...CORE, ...IELTS_X])],
+  oxford: [...new Set([...CORE, ...OXFORD_X])],
+};
+
+const DICT_META = {
+  toefl:  { badge: '📚 TOEFL High-Freq.' },
+  ielts:  { badge: '🎓 IELTS / AWL' },
+  oxford: { badge: '📖 Oxford 3000' },
+};
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+const S = {
+  dictId:    null,
+  targetWpm: 40,
+  unlocked:  START_CNT,
+  saved:     {},          // { dictId: unlockedCount }
+
+  words:     [],          // [{text, chars:[{ch,st}], t0, t1}]
+  wIdx:      0,           // current word index
+  cIdx:      0,           // current char index
+  lineStart: 0,           // first word of current view block
+
+  keystrokes: 0,
+  errors:     0,
+  wordsTyped: 0,
+  wpmBuf:     [],         // last WPM_WINDOW word-WPMs
+
+  started:   false,
+  busy:      false,       // true while showing unlock overlay
+};
+
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+const WPL = 8; // words per line
+const LINES = 3;
+
+function lset() {
+  return new Set(LETTER_SEQ.slice(0, S.unlocked).map(l => l.toLowerCase()));
+}
+
+function filterWords(arr, ls) {
+  return arr
+    .map(w => w.toLowerCase().trim())
+    .filter(w => w.length >= 3 && w.length <= 12 && /^[a-z]+$/.test(w))
+    .filter(w => [...w].every(c => ls.has(c)));
+}
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function mkWords(texts) {
+  return texts.map(t => ({ text: t, chars: [...t].map(ch => ({ ch, st: 'p' })), t0: null, t1: null }));
+}
+
+function genPool(n = 80) {
+  const ls = lset();
+  let pool = filterWords(DICT_WORDS[S.dictId] || CORE, ls);
+  if (pool.length === 0) {
+    // Fallback: generate pseudo-words from unlocked letters
+    const letters = LETTER_SEQ.slice(0, S.unlocked).map(l => l.toLowerCase());
+    pool = Array.from({ length: 30 }, () => {
+      const len = 3 + Math.floor(Math.random() * 4);
+      return Array.from({ length: len }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
+    });
+  }
+  const shuffled = shuffle(pool);
+  const out = [];
+  while (out.length < n) out.push(...shuffled);
+  return mkWords(out.slice(0, n));
+}
+
+/* ═══════════════════════════════════════════════════════
+   WPM
+═══════════════════════════════════════════════════════ */
+function recordWpm(word) {
+  if (!word.t0 || !word.t1 || word.t1 <= word.t0) return;
+  const wpm = (word.text.length / 5) / ((word.t1 - word.t0) / 60000);
+  S.wpmBuf.push(Math.min(wpm, 400));
+  if (S.wpmBuf.length > WPM_WINDOW) S.wpmBuf.shift();
+}
+
+function rollingWpm() {
+  if (!S.wpmBuf.length) return 0;
+  return Math.round(S.wpmBuf.reduce((a, b) => a + b, 0) / S.wpmBuf.length);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════ */
+function renderAll() {
+  renderStrip();
+  renderLane();
+  renderKb();
+  renderStats();
+}
+
+function renderStrip() {
+  const strip = document.getElementById('letter-strip');
+  strip.innerHTML = '';
+  LETTER_SEQ.forEach((l, i) => {
+    const d = document.createElement('div');
+    d.className = 'lchip ' +
+      (i < S.unlocked ? 'unlocked' : i === S.unlocked ? 'nxt' : 'locked');
+    d.textContent = l;
+    strip.appendChild(d);
+  });
+}
+
+function mkCaret() {
+  const s = document.createElement('span');
+  s.className = 'caret';
+  return s;
+}
+
+function renderLane() {
+  const lane = document.getElementById('text-lane');
+  lane.innerHTML = '';
+
+  // Hide hint once started
+  document.getElementById('lane-hint').style.opacity = S.words.length ? '0' : '1';
+
+  for (let li = 0; li < LINES; li++) {
+    const wStart = S.lineStart + li * WPL;
+    const wEnd   = Math.min(wStart + WPL, S.words.length);
+    if (wStart >= S.words.length) break;
+
+    const lineEl = document.createElement('div');
+    lineEl.className = 'text-line' + (li > 0 ? ' prev' : '');
+    lane.appendChild(lineEl);
+
+    for (let wi = wStart; wi < wEnd; wi++) {
+      const word = S.words[wi];
+      const wel = document.createElement('span');
+      wel.className = 'word-el';
+      wel.title = 'Click for definition';
+      wel.addEventListener('click', e => { e.stopPropagation(); showDef(word.text, wel); });
+
+      word.chars.forEach((ch, ci) => {
+        if (wi === S.wIdx && ci === S.cIdx) wel.appendChild(mkCaret());
+        const sp = document.createElement('span');
+        sp.className = 'ch' + (ch.st === 'ok' ? ' ok' : ch.st === 'err' ? ' err' : '');
+        sp.textContent = ch.ch;
+        wel.appendChild(sp);
+      });
+      // Caret at end of word = waiting for space
+      if (wi === S.wIdx && S.cIdx === word.chars.length) wel.appendChild(mkCaret());
+
+      lineEl.appendChild(wel);
+    }
+  }
+}
+
+function renderKb() {
+  const kb = document.getElementById('keyboard');
+  kb.innerHTML = '';
+  const ls = lset();
+  KB_ROWS.forEach(row => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'kb-row';
+    row.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'key ' + (ls.has(k.toLowerCase()) ? 'on' : 'off');
+      el.id = 'k-' + k;
+      el.textContent = k;
+      rowEl.appendChild(el);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function renderStats() {
+  const wpm = rollingWpm();
+  const acc = S.keystrokes > 0
+    ? Math.round((1 - S.errors / S.keystrokes) * 100) : null;
+
+  const wpmEl = document.getElementById('s-wpm');
+  wpmEl.textContent = S.started ? wpm : '—';
+  const pct = S.targetWpm > 0 ? wpm / S.targetWpm : 0;
+  wpmEl.className = 'stat-val ' + (pct >= 1 ? 'green' : pct >= 0.7 ? 'amber' : '');
+
+  document.getElementById('s-acc').textContent   = acc !== null ? acc + '%' : '—';
+  document.getElementById('s-words').textContent = S.wordsTyped;
+
+  const fill = document.getElementById('wpm-fill');
+  fill.style.width = (Math.min(pct, 1) * 100).toFixed(1) + '%';
+  fill.style.background = pct >= 1 ? 'var(--success)' : pct >= 0.7 ? 'var(--warn)' : 'var(--accent)';
+
+  const lbl = document.getElementById('wpm-lbl');
+  if (!S.started) {
+    lbl.textContent = 'Start typing to measure your speed…';
+  } else if (pct >= 1) {
+    lbl.textContent = `🔥 ${wpm} / ${S.targetWpm} WPM — Keep it up to unlock the next letter!`;
+  } else {
+    lbl.textContent = `${wpm} WPM → goal: ${S.targetWpm} WPM`;
+  }
+}
+
+function flashKey(k, type) {
+  const el = document.getElementById('k-' + k.toUpperCase());
+  if (!el) return;
+  const cls = type === 'ok' ? 'flash-ok' : 'flash-err';
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 180);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INPUT
+═══════════════════════════════════════════════════════ */
+function handleKey(e) {
+  if (S.busy) return;
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  const k = e.key;
+  if (k === 'Tab' || k === 'Escape') { e.preventDefault(); return; }
+  if (k === 'Backspace') { e.preventDefault(); return; } // keybr-style: no backspace
+
+  const word = S.words[S.wIdx];
+  if (!word) return;
+
+  if (k === ' ') {
+    e.preventDefault();
+    if (S.cIdx === word.chars.length) finishWord();
+    return;
+  }
+  if (k.length !== 1) return;
+  e.preventDefault();
+
+  if (!S.started) { S.started = true; renderStats(); }
+  if (!word.t0) word.t0 = Date.now();
+
+  const expected = word.chars[S.cIdx];
+  if (!expected) return;
+
+  S.keystrokes++;
+  if (k.toLowerCase() === expected.ch.toLowerCase()) {
+    expected.st = 'ok';
+    S.cIdx++;
+    flashKey(k, 'ok');
+  } else {
+    expected.st = 'err';
+    S.errors++;
+    flashKey(k, 'err');
+  }
+  renderLane();
+  renderStats();
+}
+
+function finishWord() {
+  const word = S.words[S.wIdx];
+  word.t1 = Date.now();
+  recordWpm(word);
+  S.wordsTyped++;
+  S.wIdx++;
+  S.cIdx = 0;
+
+  // Advance view line when current word crosses line boundary
+  if (S.wIdx >= S.lineStart + WPL) S.lineStart += WPL;
+
+  // Ensure enough words ahead
+  if (S.wIdx + WPL * LINES >= S.words.length) {
+    S.words.push(...genPool(40));
+  }
+
+  checkUnlock();
+  renderLane();
+  renderStats();
+}
+
+/* ═══════════════════════════════════════════════════════
+   UNLOCK
+═══════════════════════════════════════════════════════ */
+function checkUnlock() {
+  if (S.wpmBuf.length < WPM_MIN_SAMPLE) return;
+  if (S.unlocked >= LETTER_SEQ.length) return;
+  if (rollingWpm() < S.targetWpm) return;
+
+  const newLetter = LETTER_SEQ[S.unlocked];
+  S.unlocked++;
+  S.saved[S.dictId] = S.unlocked;
+  try { localStorage.setItem('tp_prog', JSON.stringify(S.saved)); } catch {}
+
+  S.wpmBuf = []; // reset window so they must re-earn the next unlock
+  showUnlock(newLetter);
+}
+
+function showUnlock(letter) {
+  S.busy = true;
+  document.getElementById('ul-letter').textContent = letter;
+  const ni = LETTER_SEQ.indexOf(letter) + 1;
+  document.getElementById('ul-next').textContent = ni < LETTER_SEQ.length ? LETTER_SEQ[ni] : '🎉 All done!';
+  const ov = document.getElementById('unlock-ov');
+  ov.classList.add('show');
+
+  // Mark newest chip
+  renderStrip();
+  const chips = document.querySelectorAll('.lchip.unlocked');
+  if (chips.length) chips[chips.length - 1].classList.add('newest');
+
+  setTimeout(() => {
+    ov.classList.remove('show');
+    S.busy = false;
+    // Regenerate word pool with newly unlocked letter
+    S.words     = genPool(80);
+    S.wIdx      = 0;
+    S.cIdx      = 0;
+    S.lineStart = 0;
+    renderAll();
+  }, 2400);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEFINITION POPUP
+═══════════════════════════════════════════════════════ */
+async function showDef(word, anchor) {
+  const popup = document.getElementById('def-popup');
+  document.getElementById('def-word').textContent = word;
+  document.getElementById('def-pron').textContent = '';
+  document.getElementById('def-pos').textContent  = '';
+  document.getElementById('def-defn').textContent = 'Loading…';
+  document.getElementById('def-ex').textContent   = '';
+
+  const rect = anchor.getBoundingClientRect();
+  const pw = 310;
+  let left = Math.max(8, Math.min(rect.left, window.innerWidth - pw - 8));
+  let top  = rect.bottom + 8 + window.scrollY;
+  // Flip above if too close to bottom
+  if (rect.bottom + 200 > window.innerHeight) top = rect.top - 8 + window.scrollY - 180;
+  popup.style.top  = top + 'px';
+  popup.style.left = left + 'px';
+  popup.hidden = false;
+
+  try {
+    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    if (!r.ok) throw new Error('no entry');
+    const [entry] = await r.json();
+    const ph = entry.phonetics?.find(p => p.text)?.text || '';
+    const m  = entry.meanings?.[0];
+    const d  = m?.definitions?.[0];
+    document.getElementById('def-pron').textContent = ph;
+    document.getElementById('def-pos').textContent  = m?.partOfSpeech || '';
+    document.getElementById('def-defn').textContent = d?.definition || 'No definition found.';
+    document.getElementById('def-ex').textContent   = d?.example ? `"${d.example}"` : '';
+  } catch {
+    document.getElementById('def-defn').textContent = 'Definition unavailable (internet required).';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════ */
+function goStart() {
+  document.getElementById('screen-practice').hidden = true;
+  document.getElementById('screen-start').hidden    = false;
+  document.removeEventListener('keydown', handleKey);
+}
+
+function startPractice(dictId) {
+  S.dictId    = dictId;
+  S.targetWpm = parseInt(document.getElementById('wpm-slider').value, 10);
+  S.unlocked  = S.saved[dictId] ?? START_CNT;
+
+  Object.assign(S, {
+    words: genPool(80), wIdx: 0, cIdx: 0, lineStart: 0,
+    keystrokes: 0, errors: 0, wordsTyped: 0,
+    wpmBuf: [], started: false, busy: false,
+  });
+
+  document.getElementById('hdr-badge').textContent  = DICT_META[dictId].badge;
+  document.getElementById('s-target').textContent   = S.targetWpm;
+  document.getElementById('screen-start').hidden    = true;
+  document.getElementById('screen-practice').hidden = false;
+
+  renderAll();
+  document.addEventListener('keydown', handleKey);
+  document.getElementById('lane-wrap').focus();
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+try { S.saved = JSON.parse(localStorage.getItem('tp_prog') || '{}'); } catch {}
+
+// Dictionary cards
+let selectedDict = null;
+document.querySelectorAll('.dict-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.dict-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    selectedDict = card.dataset.dict;
+    const btn = document.getElementById('start-btn');
+    btn.disabled = false;
+    btn.textContent = `▶  Start with ${DICT_META[selectedDict].badge}`;
+  });
+});
+
+document.getElementById('wpm-slider').addEventListener('input', e =>
+  document.getElementById('wpm-val').textContent = e.target.value
+);
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  if (selectedDict) startPractice(selectedDict);
+});
+
+document.getElementById('btn-back').addEventListener('click', goStart);
+
+document.getElementById('def-close').addEventListener('click', () =>
+  document.getElementById('def-popup').hidden = true
+);
+
+document.addEventListener('click', e => {
+  const p = document.getElementById('def-popup');
+  if (!p.hidden && !p.contains(e.target) && !e.target.closest('.word-el'))
+    p.hidden = true;
+});
+</script>
+</body>
+</html>
