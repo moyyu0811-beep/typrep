@@ -87,11 +87,7 @@ body {
 }
 .dict-icon  { font-size: 1.4rem; margin-bottom: 0.35rem; }
 .dict-name  { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.2rem; }
-.dict-desc  { font-size: 0.77rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.5rem; }
-.dict-badge {
-  font-size: 0.7rem; font-weight: 600; color: var(--accent);
-  background: var(--accent-lt); padding: 2px 8px; border-radius: 20px; display: inline-block;
-}
+.dict-desc  { font-size: 0.77rem; color: var(--muted); line-height: 1.4; margin-bottom: 0; }
 
 .wpm-section { margin-bottom: 1.5rem; }
 .wpm-section label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; }
@@ -188,7 +184,6 @@ input[type=range]::-webkit-slider-thumb {
   display: flex; flex-wrap: wrap; gap: 0 0.55em;
   margin-bottom: 0.6em; min-height: 2.4rem;
 }
-.text-line.prev { opacity: 0.5; }
 .word-el {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 1.4rem; white-space: nowrap; cursor: pointer;
@@ -297,21 +292,18 @@ input[type=range]::-webkit-slider-thumb {
     <div class="dict-grid">
       <div class="dict-card" data-dict="toefl">
         <div class="dict-icon">📚</div>
-        <div class="dict-name">TOEFL</div>
+        <div class="dict-name">TOEFL Essentials</div>
         <div class="dict-desc">High-frequency vocabulary for TOEFL iBT exam preparation</div>
-        <span class="dict-badge">500+ words</span>
       </div>
       <div class="dict-card" data-dict="ielts">
         <div class="dict-icon">🎓</div>
-        <div class="dict-name">IELTS Academic</div>
+        <div class="dict-name">IELTS Essentials</div>
         <div class="dict-desc">Academic Word List (AWL) used in IELTS Academic band scoring</div>
-        <span class="dict-badge">AWL 570 families</span>
       </div>
       <div class="dict-card" data-dict="oxford">
         <div class="dict-icon">📖</div>
         <div class="dict-name">Oxford 3000</div>
         <div class="dict-desc">Core English vocabulary essential for B2–C1 proficiency</div>
-        <span class="dict-badge">3000 words</span>
       </div>
     </div>
 
@@ -330,7 +322,7 @@ input[type=range]::-webkit-slider-thumb {
 
   <header class="prac-header">
     <button class="btn-back" id="btn-back">← Back</button>
-    <div class="hdr-badge" id="hdr-badge">TOEFL</div>
+    <div class="hdr-badge" id="hdr-badge">TOEFL Essentials</div>
     <div class="hdr-stats">
       <div class="stat"><span class="stat-lbl">WPM</span><span class="stat-val" id="s-wpm">—</span></div>
       <div class="stat"><span class="stat-lbl">Target</span><span class="stat-val" id="s-target">40</span></div>
@@ -340,7 +332,7 @@ input[type=range]::-webkit-slider-thumb {
   </header>
 
   <div class="letter-bar">
-    <div class="letter-bar-lbl">Letter progression — unlock the next letter by reaching your WPM goal</div>
+    <div class="letter-bar-lbl">Letter progression — hit your WPM goal over 3 lines to unlock the next letter</div>
     <div class="letter-strip" id="letter-strip"></div>
   </div>
 
@@ -394,8 +386,10 @@ input[type=range]::-webkit-slider-thumb {
 
 const LETTER_SEQ = ['E','N','I','A','R','L','T','O','S','U','D','Y','C','G','H','P','M','K','B','W','F','Z','V','X','Q','J'];
 const START_CNT  = 6; // E N I A R L
-const WPM_WINDOW = 10; // rolling average over last N words
-const WPM_MIN_SAMPLE = 5; // need at least this many words before unlocking
+
+const WPL = 8; // words per line
+const LINES = 3;
+const BLOCK_SIZE = WPL * LINES; // 24 words per "page"
 
 const KB_ROWS = [
   ['Q','W','E','R','T','Y','U','I','O','P'],
@@ -403,29 +397,19 @@ const KB_ROWS = [
   ['Z','X','C','V','B','N','M'],
 ];
 
-/* ── Word Lists ──────────────────────────────────────────
-   One large pool per dictionary. Filtered at runtime
-   by currently unlocked letters.
-   Source attribution:
-     TOEFL: open academic frequency lists (public domain)
-     IELTS: Academic Word List, V.U.Wellington (open)
-     Oxford: Oxford 3000 community-curated subset
-─────────────────────────────────────────────────────── */
+/* ── Word Lists ────────────────────────────────────────── */
 const CORE = [
-  // Stage 1  E N I A R L
   'air','ail','ale','are','ear','era','ire','lei','lie','nil','ran',
   'rein','rain','real','rail','nail','lean','lane','lain','lair','line',
   'earl','earn','near','rile','lire','anil','rani','aria','rale',
   'linen','liner','learn','alien','aerial','nailer','linear','airline',
   'liana','reline','renail',
-  // Stage 2  +T
   'at','it','ten','net','tin','tan','nit','ant','ate','tea',
   'tine','tile','tail','rate','late','tale','tare','rent','tern',
   'lint','tint','rant','anti','ante','irate','inert','inter','alert',
   'alter','later','trail','train','trial','talent','titan','retinal',
   'rental','entail','terrain','eternal','latrine','literal','attain',
   'retain','trainee','latte','tarn','nitrite','tiler','literati',
-  // Stage 3  +O
   'ore','roe','rot','toe','ton','lot','nor','not','oat','too',
   'role','oral','loan','alto','torn','tone','tore','note','iron',
   'rote','lore','root','toil','roil','loon','loot','noon',
@@ -433,7 +417,6 @@ const CORE = [
   'elation','relation','notation','oration','rational','oriental',
   'orientation','tonal','atonal','national','rotation','editorial',
   'irrational','territorial',
-  // Stage 4  +S
   'sir','sit','set','sat','sin','son','sole','sort','soul','sour',
   'star','sail','sale','sent','site','snore','stone','store','stare',
   'noise','arise','alone','onset','senator','atone','list','last',
@@ -441,73 +424,61 @@ const CORE = [
   'station','liaison','isolation','transition','international',
   'sensational','rationalist','nationalist','relations','transistors',
   'intestinal','assassinate','satisfies',
-  // Stage 5  +U
   'sue','rut','urn','rune','sure','tour','lure','sun','run',
   'unreal','nature','suture','neutral','tourist','ensure','insure',
   'tenure','nurture','torture','literature','routine','solution',
   'resolution','stature','outlines','natural','saturate','lustier',
   'tonsure','institution','notorious','unilateral','nationals',
-  // Stage 6  +D
   'due','dun','din','den','dust','done','dial','darn','dare',
   'deal','diet','dear','dose','data','duel','dune','dirt',
   'detail','united','lasted','studio','student','nodule','island',
   'standard','detailed','tradition','additional','industrial',
   'traditional','ordinal','editorial','transitional','institutional',
   'residential','situational','dimensional','standardised',
-  // Stage 7  +Y
   'dry','day','say','ray','lay','key','yet','yes','year','yard',
   'style','study','dusty','lusty','rusty','daily','early','ready',
   'steady','industry','ordinary','directory','auditory','mandatory',
   'territory','dictionary','rudimentary','evolutionary',
-  // Stage 8  +C
   'cat','can','ice','ace','act','arc','cue','cut','cry','core',
   'care','case','cast','cite','clue','code','coin','come','cost',
   'once','acid','since','council','crucial','critical','conduct',
   'create','culture','concept','context','concern','concrete',
   'construct','conscious','collection','connection','conclusion',
   'construction','circumstance','consequence','characteristic',
-  // Stage 9  +G
   'get','got','gal','gas','gain','gate','gift','girl','give',
   'glad','gold','gone','grade','grand','great','green','group',
   'guard','guess','guest','guide','generate','gradual','guidance',
   'general','generation','government','graduation','groundwork',
-  // Stage 10  +H
   'hit','hot','had','has','her','him','his','how','help','high',
   'hold','home','hope','hour','hand','hard','hunt','hair','half',
   'halt','harm','head','hear','heat','hint','host','harsh','house',
   'human','health','historical','hypothesis','highlight','hierarchical',
-  // Stage 11  +P
   'pay','put','pie','pot','pop','pin','pit','pool','pour','pull',
   'push','pace','pale','path','peak','pick','pine','plan','play',
   'plot','plus','poem','poll','pose','post','pride','print','prior',
   'proof','proud','pursue','phase','policy','promote','predict',
   'participate','perceive','paradigm','potential','physical','proportion',
-  // Stage 12  +M
   'mad','man','map','may','men','met','mid','mom','mud','mood',
   'mind','miss','make','mark','mate','meal','mean','meet','mine',
   'mode','more','move','much','must','main','math','mail','major',
   'media','moral','music','mental','method','margin','mature',
   'medium','monitor','migrate','maintain','mechanism','management',
-  // Stage 13  +K
   'ask','oak','ski','skin','skill','kind','knew','know','knack',
   'knock','stake','smoke','trick','track','black','blank','block',
   'brick','clock','click','thick','quick','check','stock','stuck',
   'stack','remarkable','acknowledge',
-  // Stage 14  +B
   'bad','bag','ban','bar','bat','bay','bed','big','bit','box','buy',
   'back','ball','band','bank','bare','bark','base','bath','bear',
   'beat','bell','bend','bird','blue','boat','body','bold','bond',
   'bone','book','boot','born','boss','both','burn','busy',
   'bring','broad','build','brand','break','blend','board','bless',
   'birth','bench','below','benefit','burden','behavior',
-  // Stage 15  +W
   'was','war','way','web','wed','wet','who','why','win','wit',
   'walk','wall','want','warm','wash','week','well','went','west',
   'wide','wild','will','wind','wine','wish','with','word','work',
   'worn','wrap','wake','wait','wave','wear','were','wire','wise',
   'wolf','wood','wool','worry','write','wrong','world','worth',
   'would','whole','white','while','water','watch','waste','wisdom',
-  // Stage 16  +F
   'few','fit','fix','fly','fog','for','fun','far','fat','fin',
   'feel','fill','find','fire','firm','fish','five','flag','flat',
   'flew','flow','food','foot','fore','fork','form','fort','four',
@@ -600,9 +571,9 @@ const DICT_WORDS = {
 };
 
 const DICT_META = {
-  toefl:  { badge: '📚 TOEFL High-Freq.' },
-  ielts:  { badge: '🎓 IELTS / AWL' },
-  oxford: { badge: '📖 Oxford 3000' },
+  toefl:  { badge: 'TOEFL Essentials' },
+  ielts:  { badge: 'IELTS Essentials' },
+  oxford: { badge: 'Oxford 3000' },
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -612,9 +583,9 @@ const S = {
   dictId:    null,
   targetWpm: 40,
   unlocked:  START_CNT,
-  saved:     {},          // { dictId: unlockedCount }
+  saved:     {},          // { dictId: { unlocked, wpm } }
 
-  words:     [],          // [{text, chars:[{ch,st}], t0, t1}]
+  words:     [],          // [{text, chars:[{ch,st}]}]
   wIdx:      0,           // current word index
   cIdx:      0,           // current char index
   lineStart: 0,           // first word of current view block
@@ -622,7 +593,11 @@ const S = {
   keystrokes: 0,
   errors:     0,
   wordsTyped: 0,
-  wpmBuf:     [],         // last WPM_WINDOW word-WPMs
+  
+  blockActive: false,
+  blockStartTime: null,
+  blockTotalChars: 0,
+  lastBlockWpm: 0,
 
   started:   false,
   busy:      false,       // true while showing unlock overlay
@@ -631,9 +606,6 @@ const S = {
 /* ═══════════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════════ */
-const WPL = 8; // words per line
-const LINES = 3;
-
 function lset() {
   return new Set(LETTER_SEQ.slice(0, S.unlocked).map(l => l.toLowerCase()));
 }
@@ -655,14 +627,13 @@ function shuffle(a) {
 }
 
 function mkWords(texts) {
-  return texts.map(t => ({ text: t, chars: [...t].map(ch => ({ ch, st: 'p' })), t0: null, t1: null }));
+  return texts.map(t => ({ text: t, chars: [...t].map(ch => ({ ch, st: 'p' })) }));
 }
 
-function genPool(n = 80) {
+function genPool(n = BLOCK_SIZE) {
   const ls = lset();
   let pool = filterWords(DICT_WORDS[S.dictId] || CORE, ls);
   if (pool.length === 0) {
-    // Fallback: generate pseudo-words from unlocked letters
     const letters = LETTER_SEQ.slice(0, S.unlocked).map(l => l.toLowerCase());
     pool = Array.from({ length: 30 }, () => {
       const len = 3 + Math.floor(Math.random() * 4);
@@ -675,19 +646,22 @@ function genPool(n = 80) {
   return mkWords(out.slice(0, n));
 }
 
-/* ═══════════════════════════════════════════════════════
-   WPM
-═══════════════════════════════════════════════════════ */
-function recordWpm(word) {
-  if (!word.t0 || !word.t1 || word.t1 <= word.t0) return;
-  const wpm = (word.text.length / 5) / ((word.t1 - word.t0) / 60000);
-  S.wpmBuf.push(Math.min(wpm, 400));
-  if (S.wpmBuf.length > WPM_WINDOW) S.wpmBuf.shift();
+function saveProgress() {
+  try { localStorage.setItem('tp_prog', JSON.stringify(S.saved)); } catch {}
 }
 
-function rollingWpm() {
-  if (!S.wpmBuf.length) return 0;
-  return Math.round(S.wpmBuf.reduce((a, b) => a + b, 0) / S.wpmBuf.length);
+/* ═══════════════════════════════════════════════════════
+   WPM LOGIC (Block-based)
+═══════════════════════════════════════════════════════ */
+function liveWpm() {
+  if (!S.started) return 0;
+  if (!S.blockActive) return S.lastBlockWpm || 0;
+  
+  const elapsed = (Date.now() - S.blockStartTime) / 60000;
+  if (elapsed < 0.02) return S.lastBlockWpm || 0; // stabilize first second
+  
+  const chars = S.blockTotalChars + S.cIdx;
+  return Math.round((chars / 5) / elapsed);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -722,7 +696,6 @@ function renderLane() {
   const lane = document.getElementById('text-lane');
   lane.innerHTML = '';
 
-  // Hide hint once started
   document.getElementById('lane-hint').style.opacity = S.words.length ? '0' : '1';
 
   for (let li = 0; li < LINES; li++) {
@@ -731,7 +704,7 @@ function renderLane() {
     if (wStart >= S.words.length) break;
 
     const lineEl = document.createElement('div');
-    lineEl.className = 'text-line' + (li > 0 ? ' prev' : '');
+    lineEl.className = 'text-line';
     lane.appendChild(lineEl);
 
     for (let wi = wStart; wi < wEnd; wi++) {
@@ -748,7 +721,7 @@ function renderLane() {
         sp.textContent = ch.ch;
         wel.appendChild(sp);
       });
-      // Caret at end of word = waiting for space
+      // Caret waiting for space
       if (wi === S.wIdx && S.cIdx === word.chars.length) wel.appendChild(mkCaret());
 
       lineEl.appendChild(wel);
@@ -775,12 +748,13 @@ function renderKb() {
 }
 
 function renderStats() {
-  const wpm = rollingWpm();
+  const wpm = liveWpm();
   const acc = S.keystrokes > 0
     ? Math.round((1 - S.errors / S.keystrokes) * 100) : null;
 
   const wpmEl = document.getElementById('s-wpm');
   wpmEl.textContent = S.started ? wpm : '—';
+  
   const pct = S.targetWpm > 0 ? wpm / S.targetWpm : 0;
   wpmEl.className = 'stat-val ' + (pct >= 1 ? 'green' : pct >= 0.7 ? 'amber' : '');
 
@@ -794,10 +768,12 @@ function renderStats() {
   const lbl = document.getElementById('wpm-lbl');
   if (!S.started) {
     lbl.textContent = 'Start typing to measure your speed…';
+  } else if (!S.blockActive && S.lastBlockWpm > 0) {
+    lbl.textContent = `Previous page average: ${S.lastBlockWpm} WPM. Start typing to begin the next page!`;
   } else if (pct >= 1) {
-    lbl.textContent = `🔥 ${wpm} / ${S.targetWpm} WPM — Keep it up to unlock the next letter!`;
+    lbl.textContent = `🔥 ${wpm} / ${S.targetWpm} WPM — Keep it up to finish the page and unlock!`;
   } else {
-    lbl.textContent = `${wpm} WPM → goal: ${S.targetWpm} WPM`;
+    lbl.textContent = `Current page pace: ${wpm} WPM → goal: ${S.targetWpm} WPM`;
   }
 }
 
@@ -817,7 +793,7 @@ function handleKey(e) {
   if (e.ctrlKey || e.altKey || e.metaKey) return;
   const k = e.key;
   if (k === 'Tab' || k === 'Escape') { e.preventDefault(); return; }
-  if (k === 'Backspace') { e.preventDefault(); return; } // keybr-style: no backspace
+  if (k === 'Backspace') { e.preventDefault(); return; }
 
   const word = S.words[S.wIdx];
   if (!word) return;
@@ -830,8 +806,11 @@ function handleKey(e) {
   if (k.length !== 1) return;
   e.preventDefault();
 
-  if (!S.started) { S.started = true; renderStats(); }
-  if (!word.t0) word.t0 = Date.now();
+  if (!S.started) S.started = true;
+  if (!S.blockActive) {
+    S.blockActive = true;
+    S.blockStartTime = Date.now();
+  }
 
   const expected = word.chars[S.cIdx];
   if (!expected) return;
@@ -852,42 +831,50 @@ function handleKey(e) {
 
 function finishWord() {
   const word = S.words[S.wIdx];
-  word.t1 = Date.now();
-  recordWpm(word);
+  S.blockTotalChars += word.text.length + 1; // +1 for space
+  
   S.wordsTyped++;
   S.wIdx++;
   S.cIdx = 0;
 
-  // Advance view line when current word crosses line boundary
-  if (S.wIdx >= S.lineStart + WPL) S.lineStart += WPL;
+  // Check if a full 3-line page (BLOCK_SIZE) is finished
+  if (S.wIdx > 0 && S.wIdx % BLOCK_SIZE === 0) {
+    const elapsedMins = (Date.now() - S.blockStartTime) / 60000;
+    const blockWpm = Math.round((S.blockTotalChars / 5) / elapsedMins);
+    S.lastBlockWpm = blockWpm;
 
-  // Ensure enough words ahead
-  if (S.wIdx + WPL * LINES >= S.words.length) {
-    S.words.push(...genPool(40));
+    if (blockWpm >= S.targetWpm && S.unlocked < LETTER_SEQ.length) {
+      const newLetter = LETTER_SEQ[S.unlocked];
+      S.unlocked++;
+      S.saved[S.dictId].unlocked = S.unlocked;
+      saveProgress();
+      showUnlock(newLetter);
+    } else {
+      nextPage();
+    }
+  } else {
+    renderLane();
+    renderStats();
   }
+}
 
-  checkUnlock();
-  renderLane();
-  renderStats();
+function nextPage() {
+  S.lineStart += BLOCK_SIZE;
+  S.blockActive = false;
+  S.blockTotalChars = 0;
+  S.cIdx = 0;
+  
+  // ensure enough words for next page
+  if (S.wIdx + BLOCK_SIZE > S.words.length) {
+    S.words.push(...genPool(BLOCK_SIZE * 2));
+  }
+  
+  renderAll();
 }
 
 /* ═══════════════════════════════════════════════════════
    UNLOCK
 ═══════════════════════════════════════════════════════ */
-function checkUnlock() {
-  if (S.wpmBuf.length < WPM_MIN_SAMPLE) return;
-  if (S.unlocked >= LETTER_SEQ.length) return;
-  if (rollingWpm() < S.targetWpm) return;
-
-  const newLetter = LETTER_SEQ[S.unlocked];
-  S.unlocked++;
-  S.saved[S.dictId] = S.unlocked;
-  try { localStorage.setItem('tp_prog', JSON.stringify(S.saved)); } catch {}
-
-  S.wpmBuf = []; // reset window so they must re-earn the next unlock
-  showUnlock(newLetter);
-}
-
 function showUnlock(letter) {
   S.busy = true;
   document.getElementById('ul-letter').textContent = letter;
@@ -896,7 +883,6 @@ function showUnlock(letter) {
   const ov = document.getElementById('unlock-ov');
   ov.classList.add('show');
 
-  // Mark newest chip
   renderStrip();
   const chips = document.querySelectorAll('.lchip.unlocked');
   if (chips.length) chips[chips.length - 1].classList.add('newest');
@@ -904,11 +890,15 @@ function showUnlock(letter) {
   setTimeout(() => {
     ov.classList.remove('show');
     S.busy = false;
-    // Regenerate word pool with newly unlocked letter
-    S.words     = genPool(80);
-    S.wIdx      = 0;
-    S.cIdx      = 0;
+    
+    // Clear pool and start fresh page with new letter
+    S.words = genPool(BLOCK_SIZE * 3);
+    S.wIdx = 0;
     S.lineStart = 0;
+    S.cIdx = 0;
+    S.blockActive = false;
+    S.blockTotalChars = 0;
+    
     renderAll();
   }, 2400);
 }
@@ -928,16 +918,22 @@ async function showDef(word, anchor) {
   const pw = 310;
   let left = Math.max(8, Math.min(rect.left, window.innerWidth - pw - 8));
   let top  = rect.bottom + 8 + window.scrollY;
-  // Flip above if too close to bottom
   if (rect.bottom + 200 > window.innerHeight) top = rect.top - 8 + window.scrollY - 180;
   popup.style.top  = top + 'px';
   popup.style.left = left + 'px';
   popup.hidden = false;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
   try {
-    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     if (!r.ok) throw new Error('no entry');
-    const [entry] = await r.json();
+    const data = await r.json();
+    const entry = Array.isArray(data) ? data[0] : data;
     const ph = entry.phonetics?.find(p => p.text)?.text || '';
     const m  = entry.meanings?.[0];
     const d  = m?.definitions?.[0];
@@ -945,13 +941,18 @@ async function showDef(word, anchor) {
     document.getElementById('def-pos').textContent  = m?.partOfSpeech || '';
     document.getElementById('def-defn').textContent = d?.definition || 'No definition found.';
     document.getElementById('def-ex').textContent   = d?.example ? `"${d.example}"` : '';
-  } catch {
-    document.getElementById('def-defn').textContent = 'Definition unavailable (internet required).';
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      document.getElementById('def-defn').textContent = 'Request timed out. The dictionary API is currently slow.';
+    } else {
+      document.getElementById('def-defn').textContent = 'Definition unavailable (or word not found).';
+    }
   }
 }
 
 /* ═══════════════════════════════════════════════════════
-   NAVIGATION
+   NAVIGATION & INIT
 ═══════════════════════════════════════════════════════ */
 function goStart() {
   document.getElementById('screen-practice').hidden = true;
@@ -961,13 +962,15 @@ function goStart() {
 
 function startPractice(dictId) {
   S.dictId    = dictId;
-  S.targetWpm = parseInt(document.getElementById('wpm-slider').value, 10);
-  S.unlocked  = S.saved[dictId] ?? START_CNT;
+  const saved = S.saved[dictId];
+  S.targetWpm = saved.wpm;
+  S.unlocked  = saved.unlocked;
 
   Object.assign(S, {
-    words: genPool(80), wIdx: 0, cIdx: 0, lineStart: 0,
+    words: genPool(BLOCK_SIZE * 3), wIdx: 0, cIdx: 0, lineStart: 0,
     keystrokes: 0, errors: 0, wordsTyped: 0,
-    wpmBuf: [], started: false, busy: false,
+    blockActive: false, blockStartTime: null, blockTotalChars: 0, lastBlockWpm: 0,
+    started: false, busy: false,
   });
 
   document.getElementById('hdr-badge').textContent  = DICT_META[dictId].badge;
@@ -980,18 +983,30 @@ function startPractice(dictId) {
   document.getElementById('lane-wrap').focus();
 }
 
-/* ═══════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════ */
-try { S.saved = JSON.parse(localStorage.getItem('tp_prog') || '{}'); } catch {}
+// Migrate/Load Save Data
+let loaded = {};
+try { loaded = JSON.parse(localStorage.getItem('tp_prog') || '{}'); } catch {}
+for (const k in loaded) {
+  // convert old format: {"toefl": 8} -> {"toefl": {unlocked: 8, wpm: 40}}
+  if (typeof loaded[k] === 'number') {
+    loaded[k] = { unlocked: loaded[k], wpm: 40 };
+  }
+}
+S.saved = loaded;
 
-// Dictionary cards
+// Dictionary cards logic
 let selectedDict = null;
 document.querySelectorAll('.dict-card').forEach(card => {
   card.addEventListener('click', () => {
     document.querySelectorAll('.dict-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     selectedDict = card.dataset.dict;
+    
+    const saved = S.saved[selectedDict];
+    const wpmToSet = saved && saved.wpm ? saved.wpm : 40;
+    document.getElementById('wpm-slider').value = wpmToSet;
+    document.getElementById('wpm-val').textContent = wpmToSet;
+    
     const btn = document.getElementById('start-btn');
     btn.disabled = false;
     btn.textContent = `▶  Start with ${DICT_META[selectedDict].badge}`;
@@ -1003,7 +1018,25 @@ document.getElementById('wpm-slider').addEventListener('input', e =>
 );
 
 document.getElementById('start-btn').addEventListener('click', () => {
-  if (selectedDict) startPractice(selectedDict);
+  if (!selectedDict) return;
+  const chosenWpm = parseInt(document.getElementById('wpm-slider').value, 10);
+  const saved = S.saved[selectedDict] || { unlocked: START_CNT, wpm: chosenWpm };
+  
+  if (saved.wpm && chosenWpm !== saved.wpm && saved.unlocked > START_CNT) {
+    const ok = window.confirm(`Changing your target speed (from ${saved.wpm} to ${chosenWpm} WPM) will reset your unlocked letters back to the beginning. Do you want to continue?`);
+    if (!ok) {
+      document.getElementById('wpm-slider').value = saved.wpm;
+      document.getElementById('wpm-val').textContent = saved.wpm;
+      return;
+    }
+    saved.unlocked = START_CNT; // Reset progress!
+  }
+  
+  saved.wpm = chosenWpm;
+  S.saved[selectedDict] = saved;
+  saveProgress();
+  
+  startPractice(selectedDict);
 });
 
 document.getElementById('btn-back').addEventListener('click', goStart);
